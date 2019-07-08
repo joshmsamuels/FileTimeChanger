@@ -19,6 +19,7 @@ const (
 	TimeFormat = "02 Jan 2006 15:04 MST"
 )
 
+// Data stores the variables to change the modified date of a file.
 type Data struct {
 	// filepath represents the path to the file.
 	filepath string
