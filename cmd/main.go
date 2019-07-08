@@ -1,43 +1,35 @@
 package main
 
 import (
-	"bufio"
 	"fmt"
-	"os"
 	"time"
 
 	"FileTimeChanger/internal/file"
 	"FileTimeChanger/internal/utils"
+	"FileTimeChanger/internal/validator"
 )
 
 func main() {
-	fileData := gatherData()
+	fileData := file.NewDataBlank()
 
-	// TODO: Try to keep aTime the same if possible
-	aTime := time.Now()
+	fileData.SetFilepath(
+		utils.Prompt("Please enter a the path to a file",
+			"Filepath was stored successfully",
+			"Unable to read the filepath",
+			validator.ValidateFilepath),
+	)
 
-	err := os.Chtimes(fileData.GetFilepath(), aTime, fileData.GetModifiedTime())
-	utils.HandleGenericErr("Sorry, there was an error changing the modified time of the file", err)
+	timeStr := utils.Prompt(
+		fmt.Sprintf("Please enter the new time I should set for %s (format: %s)", fileData.GetFilepath(), file.TimeFormat),
+		"Time modified was entered successfully",
+		"Unable to store the time entered",
+		validator.ValidateDate,
+	)
 
-	fmt.Printf("The time for %s has been changed to %s\n", fileData.GetFilepath(), fileData.GetModifiedTime().Format(time.RFC1123))
-}
+	mTime, err := time.Parse(file.TimeFormat, timeStr)
 
-func gatherData() *file.Data {
-	// Initialize the buffered reader to read from standard in
-	stdInReader := bufio.NewReader(os.Stdin)
+	fileData.SetModifiedTime(mTime)
 
-	// Prompt for the filepath
-	fmt.Printf("Please enter a the path to a file: ")
-	filepath, err := utils.ReadString(stdInReader, '\n')
-	utils.HandleGenericErr("Sorry, there was an error reading the path to the file", err)
-
-	fi, err := os.Stat(filepath)
-	utils.HandleGenericErr("Sorry, there was an error getting important information on the file you selected", err)
-
-	fmt.Printf("Please enter the new time modified for the file (e.g. %s): ", time.RFC1123)
-	timeStr, err := utils.ReadString(stdInReader, '\n')
-	mTime, err := time.ParseInLocation(time.RFC1123, timeStr, fi.ModTime().Location())
-	utils.HandleGenericErr("Sorry, there was an error reading the time you entered", err)
-
-	return file.NewData(filepath, mTime)
+	err = fileData.ChangeFileTime()
+	utils.HandleGenericErr(fmt.Sprintf("The time for %s was successfully changed to %s", fileData.GetFilepath(), fileData.GetModifiedTime()), "Sorry, there was an error changing the file time", err)
 }
