@@ -27,10 +27,9 @@ func TestNewData(t *testing.T) {
 			t.Errorf("Error parsing time: (%v)", err)
 		}
 
-		expectedResult := Data{}
-		expectedResult.SetFilepath(test.filepath)
-		expectedResult.SetModifiedTime(parsedTime)
+		data := NewData(test.filepath, parsedTime)
 
-		assert.Equal(t, &expectedResult, NewData(test.filepath, parsedTime))
+		assert.Equal(t, test.filepath, data.GetFilepath(), "Filepath that was set should be retrieved")
+		assert.Equal(t, parsedTime, data.GetModifiedTime(), "Time that was parsed should be retrieved")
 	}
 }
